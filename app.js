@@ -5,6 +5,7 @@ let DATA = {
 };
 
 let cubeProfile = undefined;
+let cubeActivity = [];
 let title = document.getElementById('title');
 let input = document.getElementById('input');
 
@@ -44,24 +45,19 @@ const render3dProfile = () => {
 };
 
 const renderContributions = () => {
-    fetch(`http://localhost:8080/api/contributions/cchalop1`)
+    fetch(`http://localhost:8080/api/contributions/${DATA.username}`)
         .then(res => res.json())
-        .then(res => console.log(res));
-    // .then(body => {
-    //     let el = document.createElement('html');
-    //     el.innerHTML = body;
-    //     console.log(body);
-    //     return body;
-    // })
-    for (let i = 0; i < 20; i++) {
-        let geometry = new THREE.BoxGeometry(0.1, 0.8, 0.1);
-        let material = new THREE.MeshLambertMaterial({ color: 0x40c463 });
-        let cube = new THREE.Mesh(geometry, material);
-        cube.position.x = (i - 9) / 3;
-        cube.position.y = -2.5;
-        // cube.rotation.y += 30;
-        scene.add(cube);
-    }
+        .then(data => {
+            for (let i = 0; i < data.body.length; i++) {
+                let geometry = new THREE.BoxGeometry(0.08, 0.2 * data.body[i].count == 0 ? 0.02 : 0.2 * data.body[i].count, 0.08);
+                let material = new THREE.MeshLambertMaterial({ color: Number('0x' + data.body[i].color) });
+                let cube = new THREE.Mesh(geometry, material);
+                cube.position.x = (i - 30) / 3;
+                cube.position.y = -2.3;
+                cubeActivity.push(cube);
+                scene.add(cube);
+            }
+        });
 };
 const displayProfileName = () => {
     title.innerHTML = `${DATA.github.login}`;
@@ -89,9 +85,12 @@ camera.position.z = 5;
 
 let animate = function () {
     requestAnimationFrame(animate);
-    if (cubeProfile !== undefined) {
+    if (cubeProfile !== undefined && cubeActivity.length !== 0) {
         cubeProfile.rotation.x += 0.01;
         cubeProfile.rotation.y += 0.01;
+        for (let i = 0; i < cubeActivity.length; i++) {
+            cubeActivity[i].position.x -= 0.02;
+        }
         renderer.render(scene, camera);
     }
 };

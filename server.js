@@ -20,15 +20,19 @@ app.get('/api/contributions/:username', (req, res) => {
         .then(res => res.text())
         .then(body => {
             const html = HTMLParser.parse(body);
-            let data = [];
-            // html.querySelector('.js-calendar-graph-svg').childNodes
-            //     .forEach(el => {
-            //         console.log(el);
-            //     });
-            res.json({ body: body });
+            let data = html.querySelectorAll('.day')
+                .map(day => {
+                    return {
+                        x: Number(day.attributes.x),
+                        y: Number(day.attributes.y),
+                        color: day.attributes.fill.substr(1, 6),
+                        count: Number(day.attributes['data-count']),
+                        date: day.attributes['data-date']
+                    };
+                });
+            res.json({ body: data });
         });
 });
 
 let port = process.env.PORT || 8080;
-app.listen(port);
-console.log('Listening on port ', port);
+app.listen(port, () => console.log(`http://localhost:${port}/`));
