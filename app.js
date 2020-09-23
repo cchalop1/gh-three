@@ -17,6 +17,23 @@ const fetchGithubData = async (username) => {
     return await res.json();
 };
 
+if (window.location.pathname === '/') {
+    DATA.username = '';
+    input.focus();
+} else {
+    DATA.username = window.location.pathname.split('/')[1];
+    input.hidden = true;
+    fetchGithubData(DATA.username)
+        .then(data => {
+            DATA.error = null;
+            DATA.github = data;
+            render3dProfile();
+            renderContributions();
+            displayProfileName();
+        })
+        .catch(err => DATA.error = err);
+}
+
 const render3dProfile = () => {
     let geometry = new THREE.BoxGeometry(0.8, 0.8, 0.8);
     let texture = new THREE.TextureLoader().load(DATA.github.avatar_url);
@@ -26,6 +43,26 @@ const render3dProfile = () => {
     scene.add(cubeProfile);
 };
 
+const renderContributions = () => {
+    fetch(`http://localhost:8080/api/contributions/cchalop1`)
+        .then(res => res.json())
+        .then(res => console.log(res));
+    // .then(body => {
+    //     let el = document.createElement('html');
+    //     el.innerHTML = body;
+    //     console.log(body);
+    //     return body;
+    // })
+    for (let i = 0; i < 20; i++) {
+        let geometry = new THREE.BoxGeometry(0.1, 0.8, 0.1);
+        let material = new THREE.MeshLambertMaterial({ color: 0x40c463 });
+        let cube = new THREE.Mesh(geometry, material);
+        cube.position.x = (i - 9) / 3;
+        cube.position.y = -2.5;
+        // cube.rotation.y += 30;
+        scene.add(cube);
+    }
+};
 const displayProfileName = () => {
     title.innerHTML = `${DATA.github.login}`;
 };
@@ -37,7 +74,7 @@ let renderer = new THREE.WebGLRenderer();
 renderer.setSize(window.innerWidth, window.innerHeight);
 document.getElementById('container').appendChild(renderer.domElement);
 
-let light = new THREE.HemisphereLight(0xffffbb, 0x080820, 2);
+let light = new THREE.HemisphereLight(0xffffbb, 0x080820, 1.3);
 scene.add(light);
 
 const onWindowResize = () => {
@@ -47,7 +84,6 @@ const onWindowResize = () => {
 };
 
 window.addEventListener('resize', onWindowResize, false);
-
 
 camera.position.z = 5;
 
@@ -63,16 +99,7 @@ let animate = function () {
 window.addEventListener('keypress', (e) => {
     if (e.key === "Enter") {
         DATA.username = input.value;
-        fetchGithubData(DATA.username)
-            .then(data => {
-                input.hidden = true;
-                DATA.error = null;
-                DATA.github = data;
-                render3dProfile();
-                displayProfileName();
-            })
-            .catch(err => DATA.error = err);
-        // window.location = DATA.username;
+        window.location = DATA.username;
         input.value = '';
     }
 }, false);
